@@ -117,4 +117,24 @@ For Lab 1, you should be able to make changes in obvious places:
 - update the template only if you need a small UI change
 - use the `/health` endpoint for container and deployment health checks
 
+## Terraform infrastructure (task3 & task4)
+
+- Location: `terraform/task3/main.tf` and `terraform/task4/main.tf`.
+- What was added: ECR repository (task3), VPC, public subnets, Internet Gateway, route table, security groups for ALB and ECS, Application Load Balancer (ALB) with target group and listener, ECS cluster, Fargate task & service, IAM execution role, and a CloudWatch Log Group.
+- Useful outputs: `repository_url` (from task3) and `alb_dns_name` (task3/task4). View them with `terraform output` after apply.
+- Quick apply (example):
+
+```bash
+cd terraform/task3
+terraform init
+terraform apply
+
+# see outputs
+terraform output repository_url
+terraform output alb_dns_name
+```
+
+- Requirements: AWS credentials configured (environment variables or AWS CLI), and region set to `us-east-1` as used in the Terraform files.
+- Notes: The ECS task definition references an image tag `:v1.0.0`; update the tag or build/push an image to the ECR repo before deploying ECS services.
+
 
