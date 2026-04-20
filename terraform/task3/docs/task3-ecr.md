@@ -29,10 +29,10 @@ aws sts get-caller-identity
 
 ## 3.1 — Create the ECR Repository with Terraform
 
-Navigate to the `terraform/` directory:
+Navigate to the `terraform/task3/` directory:
 
 ```bash
-cd terraform
+cd terraform/task3
 ```
 
 Your `main.tf` defines the ECR repository:
@@ -73,12 +73,13 @@ terraform init
 terraform apply
 ```
 
-When prompted, type `yes` to confirm.
+After apply completes you can obtain the repository URL with:
 
-After apply completes, Terraform will output the repository URL:
-
-```
-repository_url = "123456789012.dkr.ecr.us-east-1.amazonaws.com/lab1-app-repo"
+```bash
+terraform output -raw repository_url
+# or capture it in a variable
+REPO_URL=$(terraform output -raw repository_url)
+echo "$REPO_URL"
 ```
 
 Copy this URL — you will need it in the next steps.
@@ -97,12 +98,14 @@ Copy this URL — you will need it in the next steps.
 
 ## 3.3 — Authenticate Docker to ECR
 
-Run the login command below, replacing `123456789012` with your actual AWS account ID:
+
+Run the login command below (automatically obtains your AWS account ID):
 
 ```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 aws ecr get-login-password --region us-east-1 \
   | docker login --username AWS --password-stdin \
-    123456789012.dkr.ecr.us-east-1.amazonaws.com
+    ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 ```
 
 You should see:
@@ -121,20 +124,15 @@ Login Succeeded
 From the project root (where your `Dockerfile` is):
 
 ```bash
-docker build -t lab1-app-repo .
-```
+# build the local image
+docker build -t lab1-app:latest .
 
-### Tag the image with the ECR URL and version
+# use the repo URL exported by Terraform
+REPO_URL=$(cd terraform/task3 && terraform output -raw repository_url)
 
-```bash
-docker tag lab1-app-repo:latest \
-  123456789012.dkr.ecr.us-east-1.amazonaws.com/lab1-app-repo:v1.0.0
-```
-
-### Push the image to ECR
-
-```bash
-docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/lab1-app-repo:v1.0.0
+# tag and push (example tag v1.0.0)
+docker tag lab1-app:latest ${REPO_URL}:v1.0.0
+docker push ${REPO_URL}:v1.0.0
 ```
 ![successful push](image-3.png)
 
